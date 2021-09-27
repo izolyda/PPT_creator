@@ -1,0 +1,156 @@
+﻿<Window x:Class="PPT_creator.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PPT_creator"
+        mc:Ignorable="d"
+        Title="PPT Creator" Height="500" Width="800">
+    <Grid>
+
+        <Grid.Resources>
+            <Style TargetType="{x:Type Button}" x:Key="formatTextStyle">
+                <Setter Property="FontFamily" Value="Palatino Linotype"></Setter>
+                <Setter Property="Width" Value="30"></Setter>
+                <Setter Property="FontSize" Value ="14"></Setter>
+                <Setter Property="CommandTarget" Value="{Binding ElementName=mainRTB}"></Setter>
+            </Style>
+
+            <Style TargetType="{x:Type Button}" x:Key="formatImageStyle">
+                <Setter Property="Width" Value="30"></Setter>
+                <Setter Property="CommandTarget" Value="{Binding ElementName=mainRTB}"></Setter>
+            </Style>
+        </Grid.Resources>
+
+        <DockPanel>
+            <TextBox DockPanel.Dock="Top" Name="titleArea" 
+                 TextChanged="titleChangedEventHandler">Ribbon</TextBox>
+            <DockPanel DockPanel.Dock="Bottom"
+                       Margin="350,5,0,5"
+                       Height="20"
+                       >
+                <Button Width="120" DockPanel.Dock="Left"
+                        Name="imgSearchBtn" 
+                        Click="imageSearch"
+                        >
+                    Image Search
+                </Button>
+                <Button Width="120" DockPanel.Dock="Left" Margin="65,0,0,0">
+                    Next Slide>>
+                </Button>
+                <Button Width="120" DockPanel.Dock="Right" Margin="10,0,0,0">
+                    Save
+                </Button>
+            </DockPanel>
+            <StackPanel Background="LightSlateGray" Orientation = "Vertical">
+                <Button Margin="10">
+                    <Border Background="Black" BorderBrush="CadetBlue" BorderThickness="2"
+        CornerRadius="2" Margin="5">
+                        <Image Width="128" 
+                   Source="D:\pictures\wallhaven-0qkxjq.jpg"/>
+                    </Border>
+                </Button>
+
+            </StackPanel>
+            <DockPanel 
+                Width="450"
+                >
+                <DockPanel Name="mainPanel" 
+                           DockPanel.Dock="Top"
+                           >
+
+                    <!-- This tool bar contains all the editing buttons. -->
+                    <ToolBar Name="mainToolBar" 
+                         Height="30" 
+                         DockPanel.Dock="top"
+                         >
+
+                        <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Cut" ToolTip="Cut">
+                            <Image Source="E:\VStudio_Projects\downloads\cut.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Copy" ToolTip="Copy">
+                            <Image Source="E:\VStudio_Projects\downloads\copy.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Paste" ToolTip="Paste">
+                                <Image Source="E:\VStudio_Projects\downloads\paste.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Undo" ToolTip="Undo">
+                                    <Image Source="E:\VStudio_Projects\downloads\undo.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Redo" ToolTip="Redo">
+                            <Image Source="E:\VStudio_Projects\downloads\redo.jpg"></Image>
+                        </Button>
+
+                        <Button Style="{StaticResource formatTextStyle}" Command="EditingCommands.ToggleBold" ToolTip="Bold">
+                            <TextBlock FontWeight="Bold">B</TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource formatTextStyle}" Command="EditingCommands.ToggleItalic" ToolTip="Italic">
+                            <TextBlock FontStyle="Italic" FontWeight="Bold">I</TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource formatTextStyle}" Command="EditingCommands.ToggleUnderline" ToolTip="Underline">
+                            <TextBlock TextDecorations="Underline" FontWeight="Bold">U</TextBlock>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.IncreaseFontSize" ToolTip="Grow Font">
+                            <Image Source="E:\VStudio_Projects\downloads\growfont.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.DecreaseFontSize" ToolTip="Shrink Font">
+                            <Image Source="E:\VStudio_Projects\downloads\shrinkfont.png"></Image>
+                        </Button>
+
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.ToggleBullets" ToolTip="Bullets">
+                            <Image Source="Images\ListBullets.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.ToggleNumbering" ToolTip="Numbering">
+                            <Image Source="Images/ListNumbering.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.AlignLeft" ToolTip="Align Left">
+                            <Image Source="Images\ParagraphLeftJustify.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.AlignCenter" ToolTip="Align Center">
+                            <Image Source="Images\ParagraphCenterJustify.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.AlignRight" ToolTip="Align Right">
+                            <Image Source="Images\ParagraphRightJustify.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.AlignJustify" ToolTip="Align Justify">
+                            <Image Source="Images\ParagraphFullJustify.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.IncreaseIndentation" ToolTip="Increase Indent">
+                            <Image Source="Images\ParagraphIncreaseIndentation.png"></Image>
+                        </Button>
+                        <Button Style="{StaticResource formatImageStyle}" Command="EditingCommands.DecreaseIndentation" ToolTip="Decrease Indent">
+                            <Image Source="Images\ParagraphDecreaseIndentation.png"></Image>
+                        </Button>
+
+                    </ToolBar>
+
+                    <!-- By default pressing tab moves focus to the next control. Setting AcceptsTab to true allows the 
+           RichTextBox to accept tab characters. -->
+                    <RichTextBox Width="400"
+                    Name="mainRTB" 
+                    AcceptsTab="True" 
+                    TextChanged="textChangedEventHandler"     
+                    IsKeyboardFocusWithinChanged="textSelectionChangedEventHandler"
+                    
+                    >
+                    </RichTextBox>
+
+                </DockPanel>
+            </DockPanel>
+            
+            <DockPanel>
+                <StackPanel Background="LightSlateGray" 
+                            Orientation = "Vertical" 
+                            DockPanel.Dock="Right"
+                            
+                            >
+                    <TextBlock Name="slideItem">
+                            slide name
+                    </TextBlock>
+
+                </StackPanel>
+
+            </DockPanel>
+        </DockPanel>
+    </Grid>
+</Window>
