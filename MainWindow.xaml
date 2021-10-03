@@ -42,16 +42,20 @@
                     Save
                 </Button>
             </DockPanel>
-            <StackPanel Background="LightSlateGray" Orientation = "Vertical">
-                <Button Margin="10">
-                    <Border Background="Black" BorderBrush="CadetBlue" BorderThickness="2"
-        CornerRadius="2" Margin="5">
-                        <Image Width="128" 
-                   Source="D:\pictures\wallhaven-0qkxjq.jpg"/>
-                    </Border>
-                </Button>
+            <ScrollViewer Name="imgScrollViewer">
+            <StackPanel 
+                Background="LightSlateGray" 
+                Orientation = "Vertical"
+                Name="imagesStackPanel"
+                >
+                
+                    <StackPanel Width="128" Margin="5">
+
+                    </StackPanel>
 
             </StackPanel>
+            </ScrollViewer>
+
             <DockPanel 
                 Width="450"
                 >
@@ -128,16 +132,16 @@
            RichTextBox to accept tab characters. -->
                     <RichTextBox Width="400"
                     Name="mainRTB" 
-                    AcceptsTab="True" 
-                    TextChanged="textChangedEventHandler"     
-                    IsKeyboardFocusWithinChanged="textSelectionChangedEventHandler"
+                    AcceptsTab="True"  
+                    AllowDrop="True" Drop="mainRTB_Drop" PreviewDragOver="mainRTB_PreviewDragOver" 
                     
-                    >
-                    </RichTextBox>
+                    />
+                   
 
                 </DockPanel>
             </DockPanel>
             
+                     
             <DockPanel>
                 <StackPanel Background="LightSlateGray" 
                             Orientation = "Vertical" 

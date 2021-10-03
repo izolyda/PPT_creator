@@ -26,6 +26,7 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Diagnostics;
 
 namespace PPT_creator
 {
@@ -39,14 +40,18 @@ namespace PPT_creator
         string cx="a5a010075cde35c18";
 
         List<String> keywords = new List<String>();
-        List<String> tokens = new List<String>();
-
+       
+        byte[] imageBytes = null;
+        
 
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = this;
+            //DataContext = this;
+
+            mainRTB.AllowDrop = true;
         }
+
 
         private void titleChangedEventHandler(object sender, TextChangedEventArgs args)
         {
@@ -74,112 +79,6 @@ namespace PPT_creator
             }
         }
        
-        private void textChangedEventHandler(object sender, TextChangedEventArgs args)
-        {/*
-            tokens.Clear();
-            string temp = "";
-           
-            TextRange allText = new TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
-
-            MemoryStream memstream = new MemoryStream();
-            allText.Save(memstream, DataFormats.Xaml);
-            if (memstream != null)
-            {
-                memstream.Close();
-            }
-
-            string rawxaml = Encoding.ASCII.GetString(memstream.ToArray());
-
-
-
-            string regex = "(FontWeight=\\\"Bold\\\").*?>(\\w.*?)(<\\/Run>)";
-
-            MatchCollection coll = Regex.Matches(rawxaml, regex);
-
-            String result = "";
-
-            if (coll.Count>0)
-            {
-               *//* for (int i = 0; i < coll.Count; i++)
-                {
-                    result = coll[i].Groups[2].Value;
-                    tmp.Add(result);
-                }*//*
-
-
-
-                temp = coll[coll.Count - 1].Groups[2].Value;
-                
-            }
-
-            string[] token = temp.Split(' ');
-          
-            if (token.Length > 1)
-            {
-                foreach(var t in token)
-                {
-                    tokens.Add(t);
-                }
-            }       
-            
-            
-            foreach (var el in tokens)
-            {
-                
-                    keywords.Add(el);
-                    Console.WriteLine(el);       
-            }*/
-
-  /*          distinct = keywords.Distinct().ToList();*/
-
-
-        }
-
-        private void textSelectionChangedEventHandler(object sender, DependencyPropertyChangedEventArgs e)
-        {
-/*            List<String> tmp = new List<String>();
-
-            TextRange allText = new TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
-
-            MemoryStream memstream = new MemoryStream();
-            allText.Save(memstream, DataFormats.Xaml);
-            if (memstream != null)
-            {
-                memstream.Close();
-            }
-
-            string rawxaml = Encoding.ASCII.GetString(memstream.ToArray());
-
-
-            string regex = "(FontWeight=\\\"Bold\\\").*?>(\\w.*?)(<\\/Run>)";
-            MatchCollection coll = Regex.Matches(rawxaml, regex);
-
-            String result = "";
-
-            if (coll.Count > 0)
-            {
-                for (int i = 0; i < coll.Count; i++)
-                {
-                    result = coll[i].Groups[2].Value;
-                    tmp.Add(result);
-                }
-
-            }
-
-            foreach (var el in tmp)
-            {
-                if(keywords.Contains(el)==false)
-                {
-                    keywords.Add(el);
-                }
-                    
-               
-            }
-
-            foreach (var el in keywords)
-                Console.WriteLine(el);*/
-
-        }
 
         private void getKeywords()
         {
@@ -230,6 +129,8 @@ namespace PPT_creator
        
         private async void imageSearch(object sender, RoutedEventArgs e)
         {
+            keywords.Clear();
+
             getTitleKeywords();
             getKeywords();
 
@@ -247,14 +148,7 @@ namespace PPT_creator
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    //create the search tasks to be executed
-                    /* var tasks = new[]{
-                                         GetAsync("flower", 4),
-                                         GetAsync("cat", 4),
-                                         GetAsync("dog", 4),
-                                     };*/
-
-
+                  
                     //create all tasks
                     Task<string>[] alltasks = new Task<string>[keywords.Count];
 
@@ -275,10 +169,14 @@ namespace PPT_creator
                         var imgUrls =
                                from lnk in jsonObj["items"]
                                select (string)lnk["link"];
+
+                        int i = 1;
                         foreach (var l in imgUrls)
                         {
                             urls.Add(l);
                             Console.WriteLine(l);
+                            appendImage(l, i);
+                            i++;
                         }
 
                     }
@@ -288,6 +186,7 @@ namespace PPT_creator
             {
                 Console.WriteLine(ex);
             }
+          
   
         }
 
@@ -309,7 +208,7 @@ namespace PPT_creator
                "&searchType=image" +
                "&fileType=" +
                filetype
-               + "&imgSize=SMALL" +
+               + "&imgSize=MEDIUM" +
                "&imgType=photo" +
                "&key=" +
                APIkey;
@@ -334,5 +233,250 @@ namespace PPT_creator
             //Console.WriteLine(result);
             return result;
         }
+
+        private void appendImage(string url, int i)
+        {
+            if (url != null)
+            {            
+                    StackPanel sp = new StackPanel();
+                    sp.Margin = new Thickness(5);
+                    sp.Name = "sp"+i;
+
+                    Image img = new Image();
+                    img.Width = 96;
+                    img.Source = new BitmapImage(new Uri(url));
+             
+                    sp.Children.Add(img);
+
+                    imagesStackPanel.Children.Add(sp);
+
+                //img.MouseDown += (s, e) => Img_MouseDown(s, e, url, imageBytes);
+                img.MouseMove += (s, e) => Img_MouseMove(s, e, url, imageBytes);
+                
+            }
+
+        }
+
+       
+
+        private void Img_MouseMove(object sender, MouseEventArgs e, string url, byte[] imageBytes)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                //create an image byte array
+                BitmapImage image = new BitmapImage(new Uri(url));
+                var webClient = new WebClient();
+                imageBytes = webClient.DownloadData(url);
+
+                DataObject data = new DataObject();
+
+                data.SetData(imageBytes);
+
+                DragDrop.DoDragDrop(this, data, DragDropEffects.Copy | DragDropEffects.Move);
+
+                Debug.WriteLine("Created.");
+            }
+        }
+
+       
+        private void DropEventHandler(object sender, DragEventArgs e)
+        {
+
+            if (Mouse.LeftButton == MouseButtonState.Released)
+            {
+                if (e.Data.GetDataPresent(typeof(Byte[])))
+                {
+
+                    byte[] imageBytes = e.Data.GetData(typeof(Byte[])) as Byte[];
+
+                    System.Drawing.Bitmap bmp;
+                    using (var ms = new MemoryStream(imageBytes))
+                    {
+                        bmp = new System.Drawing.Bitmap(ms);
+                    }
+
+                    Image imgControl = new Image();
+                    InlineUIContainer container = new InlineUIContainer(imgControl);
+                    Paragraph paragraph = new Paragraph(container);
+
+
+                    BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                      bmp.GetHbitmap(),
+                      IntPtr.Zero,
+                      System.Windows.Int32Rect.Empty,
+                      BitmapSizeOptions.FromWidthAndHeight(96, 96));
+                    ImageBrush ib = new ImageBrush(bs);
+                    paragraph.Background = ib;
+
+                    imgControl.Source = bs;
+
+                    mainRTB.Document.Blocks.Add(paragraph);
+
+                    Debug.WriteLine("Stop here.");
+
+                    // Set Effects to notify the drag source what effect
+                    // the drag-and-drop operation had.
+                    // (Copy if CTRL is pressed; otherwise, move.)
+                    if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
+                    {
+                        e.Effects = DragDropEffects.Copy;
+                    }
+                    else
+                    {
+                        e.Effects = DragDropEffects.Move;
+                    }
+
+                    e.Handled = true;
+
+                }
+               
+                
+            }     
+
+        }
+
+        private void mainRTB_Drop(object sender, DragEventArgs e)
+        {
+            if (Mouse.LeftButton == MouseButtonState.Released)
+            {
+                if (e.Data.GetDataPresent(typeof(Byte[])))
+                {
+
+                    byte[] imageBytes = e.Data.GetData(typeof(Byte[])) as Byte[];
+
+                    System.Drawing.Bitmap bmp;
+                    using (var ms = new MemoryStream(imageBytes))
+                    {
+                        bmp = new System.Drawing.Bitmap(ms);
+                    }
+
+                    Image imgControl = new Image();
+                    InlineUIContainer container = new InlineUIContainer(imgControl);
+                    Paragraph paragraph = new Paragraph(container);
+
+
+                    BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                      bmp.GetHbitmap(),
+                      IntPtr.Zero,
+                      System.Windows.Int32Rect.Empty,
+                      BitmapSizeOptions.FromWidthAndHeight(96, 96));
+                    ImageBrush ib = new ImageBrush(bs);
+                    paragraph.Background = ib;
+
+                    imgControl.Source = bs;
+
+                    mainRTB.Document.Blocks.Add(paragraph);
+
+                    Debug.WriteLine("Stop here.");
+
+                    // Set Effects to notify the drag source what effect
+                    // the drag-and-drop operation had.
+                    // (Copy if CTRL is pressed; otherwise, move.)
+                    if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
+                    {
+                        e.Effects = DragDropEffects.Copy;
+                    }
+                    else
+                    {
+                        e.Effects = DragDropEffects.Move;
+                    }
+
+                    e.Handled = true;
+
+                }
+
+
+            }
+        }
+
+        private void mainRTB_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+
+
+
+        /* private void mainRTB_PreviewDrop(object sender, DragEventArgs e)
+         {
+             Debug.WriteLine("I was here");
+         }*/
+
+
+
+
+
+        /* private void RichTextBox_DragEnter(object sender, DragEventArgs e)
+         {
+             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+             // Filter out non-image files
+             if (files != null && files.Length > 0 && files.Any())
+             {
+                 // Consider using DragEventArgs.GetPosition() to reposition the caret.
+                 e.Handled = true;
+             }
+         }
+
+         private void RichTextBox_Drop(object sender, DragEventArgs e)
+         {
+             if (e.Data.GetDataPresent(DataFormats.FileDrop))
+             {
+                 // Note that you can have more than one file.
+                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                 if (files != null && files.Length > 0)
+                 {
+                     //*******************
+                     FlowDocument tempDoc = new FlowDocument();
+                     Paragraph par = new Paragraph();
+                     tempDoc.Blocks.Add(par);
+
+                     foreach (var file in files)
+                     {
+                         try
+                         {
+                             BitmapImage bitmap = new BitmapImage(new Uri(file));
+                             Image image = new Image();
+                             image.Source = bitmap;
+                             image.Stretch = Stretch.None;
+
+                             InlineUIContainer container = new InlineUIContainer(image);
+                             par.Inlines.Add(container);
+                         }
+                         catch (Exception)
+                         {
+                             Debug.WriteLine("\"file\" was not an image");
+                         }
+                     }
+
+                     if (par.Inlines.Count < 1)
+                         Debug.WriteLine("Error");
+
+                     try
+                     {
+                         var imageRange = new TextRange(par.Inlines.FirstInline.ContentStart, par.Inlines.LastInline.ContentEnd);
+                         using (var ms = new MemoryStream())
+                         {
+                             string format = DataFormats.XamlPackage;
+
+                             imageRange.Save(ms, format, true);
+                             ms.Seek(0, SeekOrigin.Begin);
+                             //selection.Load(ms, format);
+
+
+                         }
+                     }
+                     catch (Exception)
+                     {
+                         Debug.WriteLine("Not an image");
+
+                     }
+                     //*******************
+
+                 }
+             }
+         }*/
+
     }
+
 }
+
