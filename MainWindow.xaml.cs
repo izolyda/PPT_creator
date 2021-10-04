@@ -47,24 +47,10 @@ namespace PPT_creator
         public MainWindow()
         {
             InitializeComponent();
-            //DataContext = this;
-
+           
             mainRTB.AllowDrop = true;
         }
 
-
-        private void titleChangedEventHandler(object sender, TextChangedEventArgs args)
-        {
-           /* string title = titleArea.Text;
-            string[] words = title.Split(' ');
-           
-            foreach (var el in words)
-            {
-                keywords.Add(el);
-                //Console.WriteLine(el);
-            }*/
-                       
-        }
 
         private void getTitleKeywords()
         {
@@ -75,7 +61,6 @@ namespace PPT_creator
             {
                 if(!keywords.Contains(el))
                     keywords.Add(el);
-                //Console.WriteLine(el);
             }
         }
        
@@ -244,13 +229,13 @@ namespace PPT_creator
 
                     Image img = new Image();
                     img.Width = 96;
+                    img.Stretch = Stretch.Uniform;
                     img.Source = new BitmapImage(new Uri(url));
              
                     sp.Children.Add(img);
 
                     imagesStackPanel.Children.Add(sp);
 
-                //img.MouseDown += (s, e) => Img_MouseDown(s, e, url, imageBytes);
                 img.MouseMove += (s, e) => Img_MouseMove(s, e, url, imageBytes);
                 
             }
@@ -359,13 +344,13 @@ namespace PPT_creator
                       bmp.GetHbitmap(),
                       IntPtr.Zero,
                       System.Windows.Int32Rect.Empty,
-                      BitmapSizeOptions.FromWidthAndHeight(96, 96));
-                    ImageBrush ib = new ImageBrush(bs);
-                    paragraph.Background = ib;
-
+                      BitmapSizeOptions.FromWidthAndHeight(bmp.Width, bmp.Height));
+                    
                     imgControl.Source = bs;
 
                     mainRTB.Document.Blocks.Add(paragraph);
+
+                    bmp.Dispose();
 
                     Debug.WriteLine("Stop here.");
 
@@ -391,91 +376,41 @@ namespace PPT_creator
 
         private void mainRTB_PreviewDragOver(object sender, DragEventArgs e)
         {
-            e.Handled = true;
+            e.Handled = true;            
         }
 
+        private void nextSlide(object sender, RoutedEventArgs e)
+        {
+            TextRange allText = new TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
+
+            MemoryStream memstream = new MemoryStream();
+            allText.Save(memstream, DataFormats.Rtf);
+
+            if (memstream != null)
+            {
+                memstream.Close();
+            }
+
+            Slide slide = new Slide(memstream, 1);
+
+            string rtf_slide = Encoding.ASCII.GetString(memstream.ToArray());
+
+            Console.WriteLine("stop.");
+        }
+    }
 
 
+    public class Slide
+    {
+        MemoryStream _slide { get; set; }
+        int _id { get; set; }
 
-        /* private void mainRTB_PreviewDrop(object sender, DragEventArgs e)
-         {
-             Debug.WriteLine("I was here");
-         }*/
-
-
-
-
-
-        /* private void RichTextBox_DragEnter(object sender, DragEventArgs e)
-         {
-             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-             // Filter out non-image files
-             if (files != null && files.Length > 0 && files.Any())
-             {
-                 // Consider using DragEventArgs.GetPosition() to reposition the caret.
-                 e.Handled = true;
-             }
-         }
-
-         private void RichTextBox_Drop(object sender, DragEventArgs e)
-         {
-             if (e.Data.GetDataPresent(DataFormats.FileDrop))
-             {
-                 // Note that you can have more than one file.
-                 string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                 if (files != null && files.Length > 0)
-                 {
-                     //*******************
-                     FlowDocument tempDoc = new FlowDocument();
-                     Paragraph par = new Paragraph();
-                     tempDoc.Blocks.Add(par);
-
-                     foreach (var file in files)
-                     {
-                         try
-                         {
-                             BitmapImage bitmap = new BitmapImage(new Uri(file));
-                             Image image = new Image();
-                             image.Source = bitmap;
-                             image.Stretch = Stretch.None;
-
-                             InlineUIContainer container = new InlineUIContainer(image);
-                             par.Inlines.Add(container);
-                         }
-                         catch (Exception)
-                         {
-                             Debug.WriteLine("\"file\" was not an image");
-                         }
-                     }
-
-                     if (par.Inlines.Count < 1)
-                         Debug.WriteLine("Error");
-
-                     try
-                     {
-                         var imageRange = new TextRange(par.Inlines.FirstInline.ContentStart, par.Inlines.LastInline.ContentEnd);
-                         using (var ms = new MemoryStream())
-                         {
-                             string format = DataFormats.XamlPackage;
-
-                             imageRange.Save(ms, format, true);
-                             ms.Seek(0, SeekOrigin.Begin);
-                             //selection.Load(ms, format);
-
-
-                         }
-                     }
-                     catch (Exception)
-                     {
-                         Debug.WriteLine("Not an image");
-
-                     }
-                     //*******************
-
-                 }
-             }
-         }*/
-
+        public Slide(MemoryStream ms, int id)
+        {
+            _slide = new MemoryStream();
+            _slide = ms;
+            this._id = id;
+        }
     }
 
 }

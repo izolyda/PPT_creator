@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PPT_creator"
         mc:Ignorable="d"
-        Title="PPT Creator" Height="500" Width="800">
-    <Grid>
+        Title="PPT Creator" Height="627.122" Width="1024" MinWidth="1024" MinHeight="500">
+    <Grid Width="1024" MinWidth="1024" MinHeight="500" HorizontalAlignment="Stretch">
 
         <Grid.Resources>
             <Style TargetType="{x:Type Button}" x:Key="formatTextStyle">
@@ -22,10 +22,10 @@
             </Style>
         </Grid.Resources>
 
-        <DockPanel>
-            <TextBox DockPanel.Dock="Top" Name="titleArea" 
-                 TextChanged="titleChangedEventHandler">Ribbon</TextBox>
+        <DockPanel HorizontalAlignment="Stretch">
+            <TextBox DockPanel.Dock="Top" Name="titleArea">Ribbon</TextBox>
             <DockPanel DockPanel.Dock="Bottom"
+                       HorizontalAlignment="Stretch"
                        Margin="350,5,0,5"
                        Height="20"
                        >
@@ -35,7 +35,7 @@
                         >
                     Image Search
                 </Button>
-                <Button Width="120" DockPanel.Dock="Left" Margin="65,0,0,0">
+                <Button Width="120" DockPanel.Dock="Left" Margin="65,0,0,0" Click="nextSlide">
                     Next Slide>>
                 </Button>
                 <Button Width="120" DockPanel.Dock="Right" Margin="10,0,0,0">
@@ -47,6 +47,7 @@
                 Background="LightSlateGray" 
                 Orientation = "Vertical"
                 Name="imagesStackPanel"
+                
                 >
                 
                     <StackPanel Width="128" Margin="5">
@@ -57,16 +58,20 @@
             </ScrollViewer>
 
             <DockPanel 
-                Width="450"
+                MinWidth="700"
+                HorizontalAlignment="Stretch"
                 >
                 <DockPanel Name="mainPanel" 
                            DockPanel.Dock="Top"
+                           MinWidth="700"
+                           HorizontalAlignment="Right" LastChildFill="True"
+                           Background="Red"
                            >
 
                     <!-- This tool bar contains all the editing buttons. -->
-                    <ToolBar Name="mainToolBar" 
+                    <ToolBar Name="mainToolBar"
                          Height="30" 
-                         DockPanel.Dock="top"
+                         DockPanel.Dock="top" MinWidth="700"
                          >
 
                         <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Cut" ToolTip="Cut">
@@ -128,25 +133,30 @@
 
                     </ToolBar>
 
+                    <ScrollViewer Name="rtbScrollViewer">
                     <!-- By default pressing tab moves focus to the next control. Setting AcceptsTab to true allows the 
            RichTextBox to accept tab characters. -->
-                    <RichTextBox Width="400"
-                    Name="mainRTB" 
-                    AcceptsTab="True"  
-                    AllowDrop="True" Drop="mainRTB_Drop" PreviewDragOver="mainRTB_PreviewDragOver" 
-                    
+                    <RichTextBox 
+                                Width="700"
+                                HorizontalAlignment="Stretch"
+                                Name="mainRTB" 
+                                AcceptsTab="True"  
+                                AllowDrop="True" Drop="mainRTB_Drop" PreviewDragOver="mainRTB_PreviewDragOver" MinWidth="300" 
+           
                     />
+                    </ScrollViewer>
                    
-
                 </DockPanel>
             </DockPanel>
             
                      
-            <DockPanel>
+            <DockPanel
+                HorizontalAlignment="Right"
+                >
                 <StackPanel Background="LightSlateGray" 
                             Orientation = "Vertical" 
                             DockPanel.Dock="Right"
-                            
+                            Width="162" Margin="0,0,0,0.2"
                             >
                     <TextBlock Name="slideItem">
                             slide name
