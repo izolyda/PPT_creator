@@ -40,6 +40,7 @@ namespace PPT_creator
         string cx="a5a010075cde35c18";
 
         List<String> keywords = new List<String>();
+        Slides slideCollection = new Slides();
        
         byte[] imageBytes = null;
         
@@ -274,6 +275,7 @@ namespace PPT_creator
 
                     byte[] imageBytes = e.Data.GetData(typeof(Byte[])) as Byte[];
 
+                    
                     System.Drawing.Bitmap bmp;
                     using (var ms = new MemoryStream(imageBytes))
                     {
@@ -381,6 +383,25 @@ namespace PPT_creator
 
         private void nextSlide(object sender, RoutedEventArgs e)
         {
+
+            MemoryStream memstream = saveToMemStream();
+
+            /* string filePath = @"test.rtf";
+             FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+             allText.Save(fs, DataFormats.Rtf);
+             fs.Close();*/
+
+            //create slide and add to collection of slides
+            Slide slide = new Slide(memstream);
+            slideCollection.addSlide(slide);
+
+            mainRTB.Document.Blocks.Clear();
+
+            Console.WriteLine("stop.");
+        }
+
+        private MemoryStream saveToMemStream()
+        {
             TextRange allText = new TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
 
             MemoryStream memstream = new MemoryStream();
@@ -391,25 +412,89 @@ namespace PPT_creator
                 memstream.Close();
             }
 
-            Slide slide = new Slide(memstream, 1);
-
-            string rtf_slide = Encoding.ASCII.GetString(memstream.ToArray());
-
-            Console.WriteLine("stop.");
+            return memstream;
         }
+
+        private void SaveAll(object sender, RoutedEventArgs e)
+        {
+            if (slideCollection == null) return;
+
+            foreach (var slide in slideCollection)
+            {
+                saveSlide(slide);
+            }
+        }
+
+        //TODO: can't write to a closed file stream???
+        private void saveSlide(Slide slide)
+        {
+            string filePath = @"test.rtf" + slide.getId();
+            FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+            //memoryStream.WriteTo(fileStream);
+            slide.getSlide().WriteTo(fs);
+
+            fs.Close();
+        }
+
+       
     }
 
 
     public class Slide
     {
-        MemoryStream _slide { get; set; }
-        int _id { get; set; }
+        MemoryStream _slide;
+        int _id;
 
-        public Slide(MemoryStream ms, int id)
+        public Slide(MemoryStream ms)
         {
             _slide = new MemoryStream();
             _slide = ms;
-            this._id = id;
+        }
+
+        public void setId(int id)
+        {
+            _id = id;
+        }
+
+        public int getId()
+        {
+            return _id;
+        }
+
+        public MemoryStream getSlide()
+        {
+            return _slide;
+        }
+    }
+
+    public class Slides : IEnumerable<Slide>
+    {
+        public List<Slide> slides;
+        int i;
+
+        public Slides()
+        {
+            slides = new List<Slide>();
+            i = 0;
+        }
+
+       public void addSlide(Slide slide)
+        {
+            ++i;
+            slides.Add(slide);
+            slide.setId(i);
+        }
+
+
+        //TODO: manage nulls
+        public IEnumerator<Slide> GetEnumerator()
+        {
+            return slides.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
     }
 
