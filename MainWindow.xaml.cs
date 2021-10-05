@@ -396,6 +396,7 @@ namespace PPT_creator
             slideCollection.addSlide(slide);
 
             mainRTB.Document.Blocks.Clear();
+            imagesStackPanel.Children.Clear();
 
             Console.WriteLine("stop.");
         }
@@ -407,10 +408,10 @@ namespace PPT_creator
             MemoryStream memstream = new MemoryStream();
             allText.Save(memstream, DataFormats.Rtf);
 
-            if (memstream != null)
+            /*if (memstream != null)
             {
                 memstream.Close();
-            }
+            }*/
 
             return memstream;
         }
@@ -419,16 +420,17 @@ namespace PPT_creator
         {
             if (slideCollection == null) return;
 
+           
             foreach (var slide in slideCollection)
             {
                 saveSlide(slide);
             }
         }
 
-        //TODO: can't write to a closed file stream???
+
         private void saveSlide(Slide slide)
         {
-            string filePath = @"test.rtf" + slide.getId();
+            string filePath = @"test" + slide.getId() + ".rtf";
             FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
             //memoryStream.WriteTo(fileStream);
             slide.getSlide().WriteTo(fs);
@@ -436,7 +438,7 @@ namespace PPT_creator
             fs.Close();
         }
 
-       
+
     }
 
 
