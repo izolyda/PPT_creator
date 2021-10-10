@@ -28,6 +28,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Diagnostics;
 
+
 namespace PPT_creator
 {
     /// <summary>
@@ -37,18 +38,18 @@ namespace PPT_creator
     {
 
         string APIkey = "AIzaSyD1D-imowqet24jydMF3kX4f17vBIWP0w8";
-        string cx="a5a010075cde35c18";
+        string cx = "a5a010075cde35c18";
 
         List<String> keywords = new List<String>();
         Slides slideCollection = new Slides();
-       
+
         byte[] imageBytes = null;
-        
+
 
         public MainWindow()
         {
             InitializeComponent();
-           
+
             mainRTB.AllowDrop = true;
         }
 
@@ -60,11 +61,11 @@ namespace PPT_creator
 
             foreach (var el in words)
             {
-                if(!keywords.Contains(el))
+                if (!keywords.Contains(el))
                     keywords.Add(el);
             }
         }
-       
+
 
         private void getKeywords()
         {
@@ -112,7 +113,7 @@ namespace PPT_creator
         }
 
 
-       
+
         private async void imageSearch(object sender, RoutedEventArgs e)
         {
             keywords.Clear();
@@ -126,30 +127,31 @@ namespace PPT_creator
 
             IEnumerable<string> queryResults;
 
-            try { 
+            try
+            {
 
-            //Using a single client to make the calls.
+                //Using a single client to make the calls.
                 using (var client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                  
+
                     //create all tasks
                     Task<string>[] alltasks = new Task<string>[keywords.Count];
 
-                    for(int i=0; i<keywords.Count; i++)
+                    for (int i = 0; i < keywords.Count; i++)
                     {
                         alltasks[i] = GetAsync(keywords[i], 2);
                     }
 
 
                     // Await the completion of all the running tasks. 
-                    var responses = await Task.WhenAll(alltasks); 
+                    var responses = await Task.WhenAll(alltasks);
 
                     queryResults = responses.Where(r => r != null); //filter out any null values
 
-                    foreach(var item in queryResults)
+                    foreach (var item in queryResults)
                     {
                         JObject jsonObj = JObject.Parse(item);
                         var imgUrls =
@@ -172,11 +174,11 @@ namespace PPT_creator
             {
                 Console.WriteLine(ex);
             }
-          
-  
+
+
         }
 
-       
+
         private async Task<string> GetAsync(string keyword, int limit)
         {
             string endpointURL = "https://www.googleapis.com/customsearch/v1";
@@ -187,9 +189,9 @@ namespace PPT_creator
 
             var URL = "https://customsearch.googleapis.com/customsearch/v1?cx=" +
                cx
-               + "&exactTerms="+ 
-               keyword 
-               +"&num=" + 
+               + "&exactTerms=" +
+               keyword
+               + "&num=" +
                limit +
                "&searchType=image" +
                "&fileType=" +
@@ -210,11 +212,11 @@ namespace PPT_creator
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
-           
+
 
             //Console.WriteLine(result);
             return result;
@@ -223,27 +225,27 @@ namespace PPT_creator
         private void appendImage(string url, int i)
         {
             if (url != null)
-            {            
-                    StackPanel sp = new StackPanel();
-                    sp.Margin = new Thickness(5);
-                    sp.Name = "sp"+i;
+            {
+                StackPanel sp = new StackPanel();
+                sp.Margin = new Thickness(5);
+                sp.Name = "sp" + i;
 
-                    Image img = new Image();
-                    img.Width = 96;
-                    img.Stretch = Stretch.Uniform;
-                    img.Source = new BitmapImage(new Uri(url));
-             
-                    sp.Children.Add(img);
+                Image img = new Image();
+                img.Width = 96;
+                img.Stretch = System.Windows.Media.Stretch.Uniform;
+                img.Source = new BitmapImage(new Uri(url));
 
-                    imagesStackPanel.Children.Add(sp);
+                sp.Children.Add(img);
+
+                imagesStackPanel.Children.Add(sp);
 
                 img.MouseMove += (s, e) => Img_MouseMove(s, e, url, imageBytes);
-                
+
             }
 
         }
 
-       
+
 
         private void Img_MouseMove(object sender, MouseEventArgs e, string url, byte[] imageBytes)
         {
@@ -264,7 +266,7 @@ namespace PPT_creator
             }
         }
 
-       
+
         private void DropEventHandler(object sender, DragEventArgs e)
         {
 
@@ -275,7 +277,7 @@ namespace PPT_creator
 
                     byte[] imageBytes = e.Data.GetData(typeof(Byte[])) as Byte[];
 
-                    
+
                     System.Drawing.Bitmap bmp;
                     using (var ms = new MemoryStream(imageBytes))
                     {
@@ -283,8 +285,9 @@ namespace PPT_creator
                     }
 
                     Image imgControl = new Image();
+                    imgControl.Width = 96;
                     InlineUIContainer container = new InlineUIContainer(imgControl);
-                    Paragraph paragraph = new Paragraph(container);
+                    System.Windows.Documents.Paragraph paragraph = new System.Windows.Documents.Paragraph(container);
 
 
                     BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
@@ -293,10 +296,11 @@ namespace PPT_creator
                       System.Windows.Int32Rect.Empty,
                       BitmapSizeOptions.FromWidthAndHeight(96, 96));
                     ImageBrush ib = new ImageBrush(bs);
+                   
                     paragraph.Background = ib;
 
                     imgControl.Source = bs;
-
+                    
                     mainRTB.Document.Blocks.Add(paragraph);
 
                     Debug.WriteLine("Stop here.");
@@ -316,9 +320,9 @@ namespace PPT_creator
                     e.Handled = true;
 
                 }
-               
-                
-            }     
+
+
+            }
 
         }
 
@@ -339,7 +343,7 @@ namespace PPT_creator
 
                     Image imgControl = new Image();
                     InlineUIContainer container = new InlineUIContainer(imgControl);
-                    Paragraph paragraph = new Paragraph(container);
+                    System.Windows.Documents.Paragraph paragraph = new System.Windows.Documents.Paragraph(container);
 
 
                     BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
@@ -347,7 +351,7 @@ namespace PPT_creator
                       IntPtr.Zero,
                       System.Windows.Int32Rect.Empty,
                       BitmapSizeOptions.FromWidthAndHeight(bmp.Width, bmp.Height));
-                    
+
                     imgControl.Source = bs;
 
                     mainRTB.Document.Blocks.Add(paragraph);
@@ -378,11 +382,12 @@ namespace PPT_creator
 
         private void mainRTB_PreviewDragOver(object sender, DragEventArgs e)
         {
-            e.Handled = true;            
+            e.Handled = true;
         }
 
         private void nextSlide(object sender, RoutedEventArgs e)
         {
+            keywords.Clear();
 
             MemoryStream memstream = saveToMemStream();
 
@@ -392,7 +397,7 @@ namespace PPT_creator
              fs.Close();*/
 
             //create slide and add to collection of slides
-            Slide slide = new Slide(memstream);
+            RTFSlide slide = new RTFSlide(memstream);
             slideCollection.addSlide(slide);
 
             mainRTB.Document.Blocks.Clear();
@@ -408,6 +413,11 @@ namespace PPT_creator
             MemoryStream memstream = new MemoryStream();
             allText.Save(memstream, DataFormats.Rtf);
 
+            //******************************
+            FileStream fs = new FileStream(@"testtest.xml", FileMode.Create, FileAccess.Write);
+            allText.Save(fs, DataFormats.Xaml);
+            //******************************
+
             /*if (memstream != null)
             {
                 memstream.Close();
@@ -420,7 +430,7 @@ namespace PPT_creator
         {
             if (slideCollection == null) return;
 
-           
+
             foreach (var slide in slideCollection)
             {
                 saveSlide(slide);
@@ -428,77 +438,94 @@ namespace PPT_creator
         }
 
 
-        private void saveSlide(Slide slide)
+        private void saveSlide(RTFSlide rtfslide)
         {
-            string filePath = @"test" + slide.getId() + ".rtf";
-            FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-            //memoryStream.WriteTo(fileStream);
-            slide.getSlide().WriteTo(fs);
 
+            string filePath = Directory.GetCurrentDirectory();
+            if (!Directory.Exists(System.IO.Path.Combine(filePath, "slides")))
+                Directory.CreateDirectory(System.IO.Path.Combine(filePath, "slides"));
+
+            string fileName = @"test" + rtfslide.getId();
+            string fileNameExt = fileName + ".rtf";
+            FileStream fs = new FileStream(fileNameExt, FileMode.Create, FileAccess.Write);
+            rtfslide.getSlide().WriteTo(fs);
             fs.Close();
+
+            //coversion to PPT----------------->
+
+            PPTX pptx = new PPTX(@"testing.pptx");
+            PPTX.InsertNewSlide(pptx.getPresentationDoc(), 2, "slide_1_title");
+
+
+
+
+
+
         }
 
 
     }
 
 
-    public class Slide
-    {
-        MemoryStream _slide;
-        int _id;
 
-        public Slide(MemoryStream ms)
+        public class RTFSlide
         {
-            _slide = new MemoryStream();
-            _slide = ms;
-        }
+            MemoryStream _slide;
+            int _id;
+    
+        public RTFSlide(MemoryStream ms)
+            {
+                _slide = new MemoryStream();
+                _slide = ms;
+            }
 
         public void setId(int id)
-        {
-            _id = id;
+            {
+                _id = id;
+            }
+
+            public int getId()
+            {
+                return _id;
+            }
+
+            public MemoryStream getSlide()
+            {
+                return _slide;
+            }
         }
 
-        public int getId()
+        public class Slides : IEnumerable<RTFSlide>
         {
-            return _id;
+            public List<RTFSlide> slides;
+            int i;
+
+            public Slides()
+            {
+                slides = new List<RTFSlide>();
+                i = 0;
+            }
+
+            public void addSlide(RTFSlide slide)
+            {
+                ++i;
+                slides.Add(slide);
+                slide.setId(i);
+            }
+
+
+            //TODO: manage nulls
+            public IEnumerator<RTFSlide> GetEnumerator()
+            {
+                return slides.GetEnumerator();
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
         }
 
-        public MemoryStream getSlide()
-        {
-            return _slide;
-        }
     }
 
-    public class Slides : IEnumerable<Slide>
-    {
-        public List<Slide> slides;
-        int i;
-
-        public Slides()
-        {
-            slides = new List<Slide>();
-            i = 0;
-        }
-
-       public void addSlide(Slide slide)
-        {
-            ++i;
-            slides.Add(slide);
-            slide.setId(i);
-        }
-
-
-        //TODO: manage nulls
-        public IEnumerator<Slide> GetEnumerator()
-        {
-            return slides.GetEnumerator();
-        }
-
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-    }
-
-}
 

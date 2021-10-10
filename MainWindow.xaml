@@ -136,14 +136,18 @@
                     <ScrollViewer Name="rtbScrollViewer" HorizontalAlignment ="Stretch">
                     <!-- By default pressing tab moves focus to the next control. Setting AcceptsTab to true allows the 
            RichTextBox to accept tab characters. -->
-                    <RichTextBox 
+                        <RichTextBox 
                                 Width="700"
                                 HorizontalAlignment="Stretch"
                                 Name="mainRTB" 
                                 AcceptsTab="True"  
                                 AllowDrop="True" Drop="mainRTB_Drop" PreviewDragOver="mainRTB_PreviewDragOver" MinWidth="300" 
            
-                    />
+                    >
+                            <FlowDocument Name="mainRTBflow">
+                                
+                            </FlowDocument>
+                        </RichTextBox>
                     </ScrollViewer>
                    
                 </DockPanel>
