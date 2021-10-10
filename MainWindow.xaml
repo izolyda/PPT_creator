@@ -23,7 +23,7 @@
         </Grid.Resources>
 
         <DockPanel HorizontalAlignment="Left">
-            <TextBox DockPanel.Dock="Top" Name="titleArea">Ribbon</TextBox>
+            <TextBox DockPanel.Dock="Top" Name="titleArea">Puppy</TextBox>
             <DockPanel DockPanel.Dock="Bottom"
                        HorizontalAlignment="Stretch"
                        Margin="350,5,0,5"
@@ -38,7 +38,7 @@
                 <Button Width="120" DockPanel.Dock="Left" Margin="65,0,0,0" Click="nextSlide">
                     Next Slide>>
                 </Button>
-                <Button Width="120" DockPanel.Dock="Right" Margin="10,0,0,0" Click="SaveAll">
+                <Button Width="120" DockPanel.Dock="Right" Margin="10,0,0,0">
                     Save
                 </Button>
             </DockPanel>

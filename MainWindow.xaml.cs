@@ -28,6 +28,13 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Diagnostics;
 
+using Microsoft.Office.Interop;
+using Microsoft.Office.Core;
+using Microsoft.Office.Interop.PowerPoint;
+using Application = Microsoft.Office.Interop.PowerPoint.Application;
+using System.Xaml;
+using System.Drawing.Imaging;
+
 namespace PPT_creator
 {
     /// <summary>
@@ -40,16 +47,45 @@ namespace PPT_creator
         string cx="a5a010075cde35c18";
 
         List<String> keywords = new List<String>();
-        Slides slideCollection = new Slides();
-       
-        byte[] imageBytes = null;
+        SlidesCollectionHelper slidesCollectionHelper = new SlidesCollectionHelper();
+        PicsCollectionHelper picsCollectionHelper = new PicsCollectionHelper();
+
+        static Application pptApplication = new Application();
+        Presentation pptPresentation;
+        Microsoft.Office.Interop.PowerPoint.CustomLayout customLayout;
+
+        string picDir = "D:\\Images";
         
+
+        byte[] imageBytes = null;
+
+        Microsoft.Office.Interop.PowerPoint.Slides slides = null;
+
+
 
         public MainWindow()
         {
             InitializeComponent();
            
             mainRTB.AllowDrop = true;
+
+            Init();
+        }
+
+        private void Init()
+        {
+            if(pptPresentation!=null)
+            {
+                pptPresentation.Close();
+            }
+
+            pptPresentation = pptApplication.Presentations.Add(MsoTriState.msoTrue);
+            customLayout = pptPresentation.SlideMaster.CustomLayouts[Microsoft.Office.Interop.PowerPoint.PpSlideLayout.ppLayoutClipartAndText];
+
+            pptPresentation.SaveAs(@"D:\\testtest.pptx", Microsoft.Office.Interop.PowerPoint.PpSaveAsFileType.ppSaveAsDefault, MsoTriState.msoTrue);
+
+            System.IO.Directory.CreateDirectory(@picDir);
+
         }
 
 
@@ -70,7 +106,7 @@ namespace PPT_creator
         {
             List<String> tmp = new List<String>();
 
-            TextRange allText = new TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
+            System.Windows.Documents.TextRange allText = new System.Windows.Documents.TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
 
             MemoryStream memstream = new MemoryStream();
             allText.Save(memstream, DataFormats.Xaml);
@@ -352,7 +388,34 @@ namespace PPT_creator
 
                     mainRTB.Document.Blocks.Add(paragraph);
 
+                    //*************************SAVE PIC TO COLLECTION AND DISK****************************
+
+                    PictureHelper pic = new PictureHelper();
+                    picsCollectionHelper.addPic(pic);
+
+                    string fileName = "image"+picsCollectionHelper.picsList.ElementAt(picsCollectionHelper.Count()-1).getPictureId() + ".jpg";
+
+                    picsCollectionHelper.picsList.ElementAt(picsCollectionHelper.Count() - 1).setPictureUri(picDir+"\\"+fileName);
+
+
+                    using (System.Drawing.Bitmap copyBmp = new System.Drawing.Bitmap(bmp.Width, bmp.Height))
+                    {
+                        using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(copyBmp))
+                        {
+                            g.Clear(System.Drawing.Color.White);
+                            g.DrawImage(bmp, 0, 0, bmp.Width, bmp.Height);
+                        }
+                       
+                        copyBmp.Save(picDir + "\\" + fileName, ImageFormat.Jpeg);
+                        copyBmp.Dispose();
+                    }
+
+
+
+                    //************************************************************************************
+
                     bmp.Dispose();
+                    
 
                     Debug.WriteLine("Stop here.");
 
@@ -386,14 +449,21 @@ namespace PPT_creator
 
             MemoryStream memstream = saveToMemStream();
 
-            /* string filePath = @"test.rtf";
+
+            System.Windows.Documents.TextRange allText = new System.Windows.Documents.TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
+             string filePath = @"thexaml.xaml";
              FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-             allText.Save(fs, DataFormats.Rtf);
-             fs.Close();*/
+             allText.Save(fs, DataFormats.Xaml);
+             fs.Close();
 
             //create slide and add to collection of slides
-            Slide slide = new Slide(memstream);
-            slideCollection.addSlide(slide);
+            /*RTFSlide slide = new RTFSlide(memstream);
+            slideCollection.addSlide(slide);*/
+
+            SlideHelper slideHelper = new SlideHelper(1);
+            slidesCollectionHelper.addSlide(slideHelper);
+
+            saveSlide(memstream);
 
             mainRTB.Document.Blocks.Clear();
             imagesStackPanel.Children.Clear();
@@ -403,10 +473,10 @@ namespace PPT_creator
 
         private MemoryStream saveToMemStream()
         {
-            TextRange allText = new TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
+            System.Windows.Documents.TextRange allText = new System.Windows.Documents.TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
 
             MemoryStream memstream = new MemoryStream();
-            allText.Save(memstream, DataFormats.Rtf);
+            allText.Save(memstream, DataFormats.Xaml);
 
             /*if (memstream != null)
             {
@@ -416,7 +486,7 @@ namespace PPT_creator
             return memstream;
         }
 
-        private void SaveAll(object sender, RoutedEventArgs e)
+       /* private void SaveAll(object sender, RoutedEventArgs e)
         {
             if (slideCollection == null) return;
 
@@ -425,62 +495,175 @@ namespace PPT_creator
             {
                 saveSlide(slide);
             }
-        }
+        }*/
 
 
-        private void saveSlide(Slide slide)
+        private void saveSlide(MemoryStream ms)
         {
-            string filePath = @"test" + slide.getId() + ".rtf";
+            /*string filePath = @"test" + rtfSlide.getId() + ".rtf";
             FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
             //memoryStream.WriteTo(fileStream);
-            slide.getSlide().WriteTo(fs);
+            rtfSlide.getSlide().WriteTo(fs);
 
-            fs.Close();
+            fs.Close();*/
+
+            Microsoft.Office.Interop.PowerPoint._Slide slide;
+            Microsoft.Office.Interop.PowerPoint.TextRange objText;
+                      
+                      
+            int id = slidesCollectionHelper.slides[0].getId();
+            slidesCollectionHelper.slides.RemoveAt(0);
+
+            slides = pptPresentation.Slides;
+            slide = slides.AddSlide(id, customLayout); //goes to the collection of PPT slides
+
+
+            // Add title
+            objText = slide.Shapes[1].TextFrame.TextRange;
+            objText.Text = titleArea.Text;
+            objText.Font.Name = "Arial";
+            objText.Font.Size = 32;
+
+
+            string xaml = Encoding.ASCII.GetString(ms.ToArray());
+
+            xaml = System.Text.RegularExpressions.Regex.Unescape(xaml);
+            Console.WriteLine(xaml);
+
+            XmlDocument doc = new XmlDocument();
+            string paragraph = "Paragraph";
+
+            using (TextReader sr = new StringReader(xaml))
+            {
+                doc.Load(sr);
+
+            }
+        
+            //traverse all Paragraph nodes in richtextbox xaml
+            XElement xmlTree = XElement.Parse(xaml);
+
+            string prev = null;
+            objText = slide.Shapes[2].TextFrame.TextRange;
+            objText.ParagraphFormat.Bullet.Character = ' ';
+           
+            foreach (XElement node in xmlTree.Elements())
+            {
+                //traverse all inner Run tags
+           
+
+                foreach (XElement n in node.Elements())
+                {
+                    objText.Text += n.Value;
+                    objText.Text += Environment.NewLine;
+                    
+                    if (n.Value == null)
+                    {
+                        //Run is empty ==> there's an image
+                        //save image somehow
+                        Microsoft.Office.Interop.PowerPoint.Shape shape = slide.Shapes[2];
+
+
+
+                       // slide.Shapes.AddPicture(pictureFileName, Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top, shape.Width, shape.Height);
+                    }
+
+                    Console.WriteLine(n.Name.LocalName);
+                }
+              
+            }
+
+           
+            pptPresentation.Save();
+            pptPresentation.Close();
+
+            SaveToPPTplayground();
+
+            Console.WriteLine("Stop for ppt slide debug.");
+
         }
+
+
+
+        private void SaveToPPTplayground()
+        {
+            string pictureFileName = "D:\\cat1.jpg";
+
+            Application pptApplication = new Application();
+
+            Microsoft.Office.Interop.PowerPoint.Slides slides;
+            Microsoft.Office.Interop.PowerPoint._Slide slide;
+            Microsoft.Office.Interop.PowerPoint.TextRange objText;
+
+            // Create the Presentation File
+            Presentation pptPresentation = pptApplication.Presentations.Add(MsoTriState.msoTrue);
+
+            Microsoft.Office.Interop.PowerPoint.CustomLayout customLayout = pptPresentation.SlideMaster.CustomLayouts[Microsoft.Office.Interop.PowerPoint.PpSlideLayout.ppLayoutText];
+
+            // Create new Slide
+            slides = pptPresentation.Slides;
+            slide = slides.AddSlide(1, customLayout);
+
+            // Add title
+            objText = slide.Shapes[1].TextFrame.TextRange;
+            objText.Text = "test";
+            objText.Font.Name = "Arial";
+            objText.Font.Size = 32;
+
+            objText = slide.Shapes[2].TextFrame.TextRange;
+            objText.Text = "Content goes here\nYou can add text\nItem 3";
+
+            var start = slide.Shapes[2].TextFrame.TextRange.Find("Content goes here ");
+            start.InsertAfter("you're lucky");
+
+
+          /*  Microsoft.Office.Interop.PowerPoint.Shape shape = slide.Shapes[2];
+            slide.Shapes.AddPicture(pictureFileName, Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top, shape.Width, shape.Height);*/
+
+            slide.NotesPage.Shapes[2].TextFrame.TextRange.Text = "Test";
+
+            pptPresentation.SaveAs(@"D:\\sandbox.pptx", Microsoft.Office.Interop.PowerPoint.PpSaveAsFileType.ppSaveAsDefault, MsoTriState.msoTrue);
+            pptPresentation.Close();
+
+            
+        }
+
+       
 
 
     }
 
 
-    public class Slide
+    public class SlideHelper
     {
-        MemoryStream _slide;
         int _id;
 
-        public Slide(MemoryStream ms)
+        public SlideHelper(int id)
         {
-            _slide = new MemoryStream();
-            _slide = ms;
+            _id = id;
+        }
+        public int getId()
+        {
+            return _id;
         }
 
         public void setId(int id)
         {
             _id = id;
         }
-
-        public int getId()
-        {
-            return _id;
-        }
-
-        public MemoryStream getSlide()
-        {
-            return _slide;
-        }
     }
 
-    public class Slides : IEnumerable<Slide>
+    public class SlidesCollectionHelper : IEnumerable<SlideHelper>
     {
-        public List<Slide> slides;
+        public List<SlideHelper> slides;
         int i;
 
-        public Slides()
+        public SlidesCollectionHelper()
         {
-            slides = new List<Slide>();
+            slides = new List<SlideHelper>();
             i = 0;
         }
 
-       public void addSlide(Slide slide)
+       public void addSlide(SlideHelper slide)
         {
             ++i;
             slides.Add(slide);
@@ -489,7 +672,7 @@ namespace PPT_creator
 
 
         //TODO: manage nulls
-        public IEnumerator<Slide> GetEnumerator()
+        public IEnumerator<SlideHelper> GetEnumerator()
         {
             return slides.GetEnumerator();
         }
@@ -499,6 +682,69 @@ namespace PPT_creator
             return this.GetEnumerator();
         }
     }
+
+    public class PictureHelper
+    {
+        private string _pictureUri = null;
+        private int _picId;
+
+        public PictureHelper()
+        {
+          
+        }
+
+        public void setPictureUri(string pictureUri)
+        {
+            _pictureUri = pictureUri;
+        }
+        public void setPictureId(int id)
+        {
+            _picId = id;
+        }
+
+        public string getPictureUri()
+        {
+            return _pictureUri;
+        }
+
+        public int getPictureId()
+        {
+            return _picId;
+        }
+    }
+
+    public class PicsCollectionHelper : IEnumerable<PictureHelper>
+    {
+        public List<PictureHelper> picsList;
+        int i;
+
+        public PicsCollectionHelper()
+        {
+            picsList = new List<PictureHelper>();
+            i = 0;
+        }
+
+        public void addPic(PictureHelper picture)
+        {
+            ++i;
+            picsList.Add(picture);
+            picture.setPictureId(i);
+        }
+
+
+        //TODO: manage nulls
+        public IEnumerator<PictureHelper> GetEnumerator()
+        {
+            return picsList.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+    }
+
+
 
 }
 
