@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:PPT_creator"
         mc:Ignorable="d"
         Title="PPT Creator" Height="627.122" Width="1024" MinWidth="1024" MinHeight="500">
-    <Grid Width="1024" MinWidth="1024" MinHeight="500">
+    <Grid Width="1024" MinWidth="1024" MinHeight="600">
 
         <Grid.Resources>
             <Style TargetType="{x:Type Button}" x:Key="formatTextStyle">
@@ -27,7 +27,7 @@
             <DockPanel DockPanel.Dock="Bottom"
                        HorizontalAlignment="Stretch"
                        Margin="350,5,0,5"
-                       Height="20"
+                       Height="25"
                        >
                 <Button Width="120" DockPanel.Dock="Left"
                         Name="imgSearchBtn" 
@@ -57,12 +57,12 @@
             </DockPanel>
 
             <DockPanel 
-                MinWidth="700"
+            
                 HorizontalAlignment="Stretch"
                 >
                 <DockPanel Name="mainPanel" 
                            DockPanel.Dock="Top"
-                           MinWidth="700"
+                           MinWidth="848"
                            HorizontalAlignment="Right" 
                            LastChildFill="True"
                            >
@@ -137,7 +137,8 @@
                     <!-- By default pressing tab moves focus to the next control. Setting AcceptsTab to true allows the 
            RichTextBox to accept tab characters. -->
                     <RichTextBox 
-                                Width="700"
+                                Width="800"
+                                Height="400"
                                 HorizontalAlignment="Stretch"
                                 Name="mainRTB" 
                                 AcceptsTab="True"  
@@ -152,19 +153,7 @@
                      
             <DockPanel
                 HorizontalAlignment="Right"
-                >
-                <StackPanel Background="LightSlateGray" 
-                            Orientation = "Vertical" 
-                            DockPanel.Dock="Right"
-                            Width="162" Margin="0,0,0,0.2"
-                            >
-                    <TextBlock Name="slideItem">
-                            slide name
-                    </TextBlock>
-
-                </StackPanel>
-
-            </DockPanel>
+                />
         </DockPanel>
     </Grid>
 </Window>

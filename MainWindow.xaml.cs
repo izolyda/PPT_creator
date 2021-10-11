@@ -176,7 +176,7 @@ namespace PPT_creator
 
                     for(int i=0; i<keywords.Count; i++)
                     {
-                        alltasks[i] = GetAsync(keywords[i], 2);
+                        alltasks[i] = GetAsync(keywords[i], 5);
                     }
 
 
@@ -374,6 +374,7 @@ namespace PPT_creator
                     }
 
                     Image imgControl = new Image();
+                    
                     InlineUIContainer container = new InlineUIContainer(imgControl);
                     Paragraph paragraph = new Paragraph(container);
 
@@ -382,8 +383,10 @@ namespace PPT_creator
                       bmp.GetHbitmap(),
                       IntPtr.Zero,
                       System.Windows.Int32Rect.Empty,
-                      BitmapSizeOptions.FromWidthAndHeight(bmp.Width, bmp.Height));
-                    
+                      BitmapSizeOptions.FromWidthAndHeight(bmp.Width/2, bmp.Height/2));
+
+                    imgControl.Width = bmp.Width / 2;
+                    imgControl.Height = bmp.Height / 2;
                     imgControl.Source = bs;
 
                     mainRTB.Document.Blocks.Add(paragraph);
@@ -409,8 +412,6 @@ namespace PPT_creator
                         copyBmp.Save(picDir + "\\" + fileName, ImageFormat.Jpeg);
                         copyBmp.Dispose();
                     }
-
-
 
                     //************************************************************************************
 
@@ -456,10 +457,6 @@ namespace PPT_creator
              allText.Save(fs, DataFormats.Xaml);
              fs.Close();
 
-            //create slide and add to collection of slides
-            /*RTFSlide slide = new RTFSlide(memstream);
-            slideCollection.addSlide(slide);*/
-
             SlideHelper slideHelper = new SlideHelper(1);
             slidesCollectionHelper.addSlide(slideHelper);
 
@@ -478,35 +475,18 @@ namespace PPT_creator
             MemoryStream memstream = new MemoryStream();
             allText.Save(memstream, DataFormats.Xaml);
 
-            /*if (memstream != null)
-            {
-                memstream.Close();
-            }*/
-
             return memstream;
         }
 
-       /* private void SaveAll(object sender, RoutedEventArgs e)
+        private void SaveAll(object sender, RoutedEventArgs e)
         {
-            if (slideCollection == null) return;
-
-           
-            foreach (var slide in slideCollection)
-            {
-                saveSlide(slide);
-            }
-        }*/
+            pptPresentation.Close();
+            pptApplication.Quit();
+        }
 
 
         private void saveSlide(MemoryStream ms)
         {
-            /*string filePath = @"test" + rtfSlide.getId() + ".rtf";
-            FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-            //memoryStream.WriteTo(fileStream);
-            rtfSlide.getSlide().WriteTo(fs);
-
-            fs.Close();*/
-
             Microsoft.Office.Interop.PowerPoint._Slide slide;
             Microsoft.Office.Interop.PowerPoint.TextRange objText;
                       
@@ -531,8 +511,7 @@ namespace PPT_creator
             Console.WriteLine(xaml);
 
             XmlDocument doc = new XmlDocument();
-            string paragraph = "Paragraph";
-
+          
             using (TextReader sr = new StringReader(xaml))
             {
                 doc.Load(sr);
@@ -542,39 +521,65 @@ namespace PPT_creator
             //traverse all Paragraph nodes in richtextbox xaml
             XElement xmlTree = XElement.Parse(xaml);
 
-            string prev = null;
             objText = slide.Shapes[2].TextFrame.TextRange;
+            objText.Font.Size = 20;
             objText.ParagraphFormat.Bullet.Character = ' ';
-           
+
+            float heightOffset = 0;
+            int j = -1;
             foreach (XElement node in xmlTree.Elements())
             {
                 //traverse all inner Run tags
-           
 
+                
                 foreach (XElement n in node.Elements())
                 {
+                    
+                    Microsoft.Office.Interop.PowerPoint.Shape shape = slide.Shapes[2];
+                    heightOffset += 30;
+
                     objText.Text += n.Value;
                     objText.Text += Environment.NewLine;
-                    
-                    if (n.Value == null)
+
+                    if (!n.HasAttributes)
                     {
                         //Run is empty ==> there's an image
                         //save image somehow
-                        Microsoft.Office.Interop.PowerPoint.Shape shape = slide.Shapes[2];
+                        shape = slide.Shapes[2];
+                        try
+                        {
+                            slide.Shapes.AddPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri(), Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top + heightOffset, shape.Width / 4, shape.Height / 4);
+                            heightOffset += shape.Height / 4;
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine(ex);
+                        }
 
 
-
-                       // slide.Shapes.AddPicture(pictureFileName, Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top, shape.Width, shape.Height);
                     }
+                   
 
-                    Console.WriteLine(n.Name.LocalName);
                 }
               
             }
 
+
+            //clean all temp pics
+            System.IO.DirectoryInfo di = new DirectoryInfo("D:\\Images");
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+
            
+            picsCollectionHelper.picsList.Clear();
+            picsCollectionHelper.nullify();
+            keywords.Clear();
+
             pptPresentation.Save();
-            pptPresentation.Close();
+            
 
             SaveToPPTplayground();
 
@@ -627,7 +632,11 @@ namespace PPT_creator
             
         }
 
-       
+        ~MainWindow()
+        {
+            
+            
+        }
 
 
     }
@@ -729,6 +738,11 @@ namespace PPT_creator
             ++i;
             picsList.Add(picture);
             picture.setPictureId(i);
+        }
+
+        public void nullify()
+        {
+            i = 0;
         }
 
 
