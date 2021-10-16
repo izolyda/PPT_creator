@@ -84,7 +84,7 @@ namespace PPT_creator
             customLayout = pptPresentation.SlideMaster.CustomLayouts[Microsoft.Office.Interop.PowerPoint.PpSlideLayout.ppLayoutClipartAndText];
 
             string fileName = "presentation.pptx";
-            string pptPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+            string pptPath = System.IO.Path.Combine("C:\\temp\\presentation\\", fileName);
 
             try
             {
@@ -498,12 +498,41 @@ namespace PPT_creator
             pptPresentation.Close();
             pptApplication.Quit();
 
-           
-            MessageBox.Show("Successfully saved.");
-            System.Windows.Application.Current.Shutdown();
+            saveAs();
+   
+        }
+
+        void saveAs()
+        {
+
             
+            string sourceFileName = System.IO.Path.Combine("C:\\temp\\presentation\\", "presentation.pptx");
+
+            string destinationFileName;
+
+
+            Microsoft.Win32.SaveFileDialog dialog = new Microsoft.Win32.SaveFileDialog()
+            {
+                Filter = "Presentation files(*.pptx)|*.pptx|All(*.*)|*"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                destinationFileName = System.IO.Path.GetFullPath(dialog.FileName);
+                try
+                {
+                    File.Copy(sourceFileName, destinationFileName, true);
+               
+                    MessageBox.Show("Successfully saved.");
+
+                    System.Windows.Application.Current.Shutdown();
+
+                } catch(Exception ex)
+                {
+                    Debug.WriteLine(ex);
+                }
                 
-            
+            }
         }
 
 
