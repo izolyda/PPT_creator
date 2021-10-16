@@ -56,7 +56,7 @@ namespace PPT_creator
         Microsoft.Office.Interop.PowerPoint.CustomLayout customLayout;
 
         string picDir = "C:\\temp\\Images";
-        
+        string tempPresentationDir = "C:\\temp\\presentation";
 
         byte[] imageBytes = null;
 
@@ -83,19 +83,34 @@ namespace PPT_creator
             pptPresentation = pptApplication.Presentations.Add(MsoTriState.msoTrue);
             customLayout = pptPresentation.SlideMaster.CustomLayouts[Microsoft.Office.Interop.PowerPoint.PpSlideLayout.ppLayoutClipartAndText];
 
+            try
+            {
+                System.IO.Directory.CreateDirectory(@tempPresentationDir);
+            } catch(Exception ex)
+            {
+                MessageBox.Show("Permission denied.");
+                Debug.WriteLine(ex);
+            }
+       
             string fileName = "presentation.pptx";
-            string pptPath = System.IO.Path.Combine("C:\\temp\\presentation\\", fileName);
+            string pptPath = System.IO.Path.Combine(tempPresentationDir, fileName);
 
             try
             {
                 pptPresentation.SaveAs(pptPath, Microsoft.Office.Interop.PowerPoint.PpSaveAsFileType.ppSaveAsDefault, MsoTriState.msoTrue);
             } catch(Exception ex)
             {
-                MessageBox.Show("Couldn't create presentation at this time. Please close the file if open in other applications, exit and try again.");
+                MessageBox.Show("Couldn't create presentation at this time. Please close the file if open in PowerPoint application, exit and try again.");
             }
-           
-
-            System.IO.Directory.CreateDirectory(@picDir);
+            try
+            {
+                System.IO.Directory.CreateDirectory(@picDir);
+            } catch(Exception ex)
+            {
+                MessageBox.Show("Permission denied.");
+                Debug.WriteLine(ex);
+            }
+         
 
         }
 
@@ -185,10 +200,19 @@ namespace PPT_creator
                   
                     //create all tasks
                     Task<string>[] alltasks = new Task<string>[keywords.Count];
+                    int imgLimit=1;
+
+                    if (int.TryParse(imgLimitTxtBox.Text, out int value)) {
+                        if (Int32.Parse(imgLimitTxtBox.Text) <= 10)
+                            imgLimit = Int32.Parse(imgLimitTxtBox.Text);
+                        else imgLimit = 10;
+                    }
+                    else imgLimit = 3;                    
+                    
 
                     for(int i=0; i<keywords.Count; i++)
                     {
-                        alltasks[i] = GetAsync(keywords[i], 5);
+                        alltasks[i] = GetAsync(keywords[i], imgLimit);
                     }
 
 
@@ -199,19 +223,26 @@ namespace PPT_creator
 
                     foreach(var item in queryResults)
                     {
-                        JObject jsonObj = JObject.Parse(item);
-                        var imgUrls =
-                               from lnk in jsonObj["items"]
-                               select (string)lnk["link"];
-
-                        int i = 1;
-                        foreach (var l in imgUrls)
+                        try
                         {
-                            urls.Add(l);
-                            Console.WriteLine(l);
-                            appendImage(l, i);
-                            i++;
+                            JObject jsonObj = JObject.Parse(item);
+                            var imgUrls =
+                                   from lnk in jsonObj["items"]
+                                   select (string)lnk["link"];
+
+                            int i = 1;
+                            foreach (var l in imgUrls)
+                            {
+                                urls.Add(l);
+                                Console.WriteLine(l);
+                                appendImage(l, i);
+                                i++;
+                            }
+                        } catch(Exception ex)
+                        {
+                            Debug.WriteLine(ex);
                         }
+                        
 
                     }
                 }
@@ -464,13 +495,6 @@ namespace PPT_creator
 
             MemoryStream memstream = saveToMemStream();
 
-
-            System.Windows.Documents.TextRange allText = new System.Windows.Documents.TextRange(mainRTB.Document.ContentStart, mainRTB.Document.ContentEnd);
-             string filePath = @"thexaml.xaml";
-             FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-             allText.Save(fs, DataFormats.Xaml);
-             fs.Close();
-
             SlideHelper slideHelper = new SlideHelper(1);
             slidesCollectionHelper.addSlide(slideHelper);
 
@@ -524,6 +548,11 @@ namespace PPT_creator
                     File.Copy(sourceFileName, destinationFileName, true);
                
                     MessageBox.Show("Successfully saved.");
+
+                    if (File.Exists(@"C:\\temp\\presentation\\presentation.pptx"))
+                    {
+                        File.Delete(@"C:\\temp\\presentation\\presentation.pptx");
+                    }
 
                     System.Windows.Application.Current.Shutdown();
 
@@ -590,8 +619,7 @@ namespace PPT_creator
             foreach (XElement node in xmlTree.Elements())
             {
                 //traverse all inner Run tags
-
-                
+                                 
                 foreach (XElement n in node.Elements())
                 {
                     
@@ -605,9 +633,9 @@ namespace PPT_creator
                         shape = slide.Shapes[2];
                         try
                         {
-                            slide.Shapes.AddShape(MsoAutoShapeType.msoShapeRectangle, 20, heightOffset, 200, 113).Fill.UserPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri());
+                            slide.Shapes.AddShape(MsoAutoShapeType.msoShapeRectangle, 20, heightOffset, 190, 113).Fill.UserPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri());
 
-                            heightOffset += 115;
+                            heightOffset += 123;
 
                           
                         }
@@ -635,7 +663,7 @@ namespace PPT_creator
                                             
 
                         int lines = n.Value.Length / 120;
-                        heightOffset += 18*lines+20;
+                        heightOffset += 18*lines+30;
 
                                             
                     }
@@ -664,7 +692,7 @@ namespace PPT_creator
 
         }
 
-
+  
     }
 
 
