@@ -35,6 +35,7 @@ using Application = Microsoft.Office.Interop.PowerPoint.Application;
 using System.Xaml;
 using System.Drawing.Imaging;
 
+
 namespace PPT_creator
 {
     /// <summary>
@@ -152,6 +153,7 @@ namespace PPT_creator
         private async void imageSearch(object sender, RoutedEventArgs e)
         {
             keywords.Clear();
+            imagesStackPanel.Children.Clear();
 
             getTitleKeywords();
             getKeywords();
@@ -464,6 +466,7 @@ namespace PPT_creator
 
             mainRTB.Document.Blocks.Clear();
             imagesStackPanel.Children.Clear();
+            titleArea.Text = "placeholder";
 
             Console.WriteLine("stop.");
         }
@@ -482,6 +485,13 @@ namespace PPT_creator
         {
             pptPresentation.Close();
             pptApplication.Quit();
+
+           
+            MessageBox.Show("Successfully saved.");
+            System.Windows.Application.Current.Shutdown();
+            
+                
+            
         }
 
 
@@ -489,13 +499,23 @@ namespace PPT_creator
         {
             Microsoft.Office.Interop.PowerPoint._Slide slide;
             Microsoft.Office.Interop.PowerPoint.TextRange objText;
-                      
-                      
+
+           
             int id = slidesCollectionHelper.slides[0].getId();
             slidesCollectionHelper.slides.RemoveAt(0);
 
-            slides = pptPresentation.Slides;
+            try
+            {
+                slides = pptPresentation.Slides; 
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Data.Values.ToString());
+            }
+
             slide = slides.AddSlide(id, customLayout); //goes to the collection of PPT slides
+
+            slide.Layout = PpSlideLayout.ppLayoutText;
 
 
             // Add title
@@ -525,8 +545,10 @@ namespace PPT_creator
             objText.Font.Size = 20;
             objText.ParagraphFormat.Bullet.Character = ' ';
 
-            float heightOffset = 0;
+            float heightOffset = 100;
             int j = -1;
+
+                     
             foreach (XElement node in xmlTree.Elements())
             {
                 //traverse all inner Run tags
@@ -536,27 +558,45 @@ namespace PPT_creator
                 {
                     
                     Microsoft.Office.Interop.PowerPoint.Shape shape = slide.Shapes[2];
-                    heightOffset += 30;
+                   
+                                  
 
-                    objText.Text += n.Value;
-                    objText.Text += Environment.NewLine;
-
-                    if (!n.HasAttributes)
+                    if(n.Value==" ")
                     {
-                        //Run is empty ==> there's an image
-                        //save image somehow
+                       
                         shape = slide.Shapes[2];
                         try
                         {
-                            slide.Shapes.AddPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri(), Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top + heightOffset, shape.Width / 4, shape.Height / 4);
-                            heightOffset += shape.Height / 4;
+                            slide.Shapes.AddShape(MsoAutoShapeType.msoShapeRectangle, 0, heightOffset, 267, 150).Fill.UserPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri());
+
+                            // slide.Shapes.AddPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri(), Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top + heightOffset, shape.Width / 3, shape.Height / 3);
+                            // heightOffset += shape.Height / 3;
+
+                            heightOffset += 160;
+
+                          
                         }
+
                         catch (Exception ex)
                         {
                             Debug.WriteLine(ex);
                         }
 
 
+                    }
+                    else if(n.Value=="")
+                    {
+                        objText.Text += "\n";
+                    }
+                    else
+                    {
+                        slide.Shapes.AddTextbox(MsoTextOrientation.msoTextOrientationHorizontal, 0, heightOffset, 1200, 30).TextFrame.TextRange.Text = n.Value;
+                        heightOffset += 30;
+
+                        /* objText.Text += n.Value;
+                         objText.Text += Environment.NewLine;*/
+
+                       
                     }
                    
 
@@ -635,7 +675,7 @@ namespace PPT_creator
         ~MainWindow()
         {
             
-            
+
         }
 
 

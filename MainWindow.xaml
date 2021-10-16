@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PPT_creator"
         mc:Ignorable="d"
-        Title="PPT Creator" Height="627.122" Width="1024" MinWidth="1024" MinHeight="500">
+        Title="PPT Creator" Height="669.424" Width="1056.784" MinWidth="1024" MinHeight="500" ResizeMode="NoResize">
     <Grid Width="1024" MinWidth="1024" MinHeight="600">
 
         <Grid.Resources>
@@ -23,7 +23,7 @@
         </Grid.Resources>
 
         <DockPanel HorizontalAlignment="Left">
-            <TextBox DockPanel.Dock="Top" Name="titleArea">Puppy</TextBox>
+            <TextBox DockPanel.Dock="Top" x:Name="titleArea" Text="moon"/>
             <DockPanel DockPanel.Dock="Bottom"
                        HorizontalAlignment="Stretch"
                        Margin="350,5,0,5"
@@ -38,18 +38,19 @@
                 <Button Width="120" DockPanel.Dock="Left" Margin="65,0,0,0" Click="nextSlide">
                     Next Slide>>
                 </Button>
-                <Button Width="120" DockPanel.Dock="Right" Margin="10,0,0,0">
+                <Button Width="120" DockPanel.Dock="Right" Margin="10,0,0,0" Click="SaveAll">
                     Save
                 </Button>
             </DockPanel>
             <DockPanel>
                 <ScrollViewer Name="imgScrollViewer">
                     <StackPanel 
-                    Background="LightSlateGray" 
-                    Orientation = "Vertical"
-                    Name="imagesStackPanel"
-                    HorizontalAlignment="Stretch"
-                    Width="150"
+                        
+                        Background="LightSlateGray" 
+                        Orientation = "Vertical"
+                        Name="imagesStackPanel"
+                        HorizontalAlignment="Stretch"
+                        Width="150"
                         
                     >
                     </StackPanel>
@@ -81,10 +82,10 @@
                             <Image Source="E:\VStudio_Projects\downloads\copy.png"></Image>
                         </Button>
                         <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Paste" ToolTip="Paste">
-                                <Image Source="E:\VStudio_Projects\downloads\paste.png"></Image>
+                            <Image Source="E:\VStudio_Projects\downloads\paste.png"></Image>
                         </Button>
                         <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Undo" ToolTip="Undo">
-                                    <Image Source="E:\VStudio_Projects\downloads\undo.png"></Image>
+                            <Image Source="E:\VStudio_Projects\downloads\undo.png"></Image>
                         </Button>
                         <Button Style="{StaticResource formatImageStyle}" Command="ApplicationCommands.Redo" ToolTip="Redo">
                             <Image Source="E:\VStudio_Projects\downloads\redo.jpg"></Image>
@@ -134,9 +135,9 @@
                     </ToolBar>
 
                     <ScrollViewer Name="rtbScrollViewer" HorizontalAlignment ="Stretch">
-                    <!-- By default pressing tab moves focus to the next control. Setting AcceptsTab to true allows the 
+                        <!-- By default pressing tab moves focus to the next control. Setting AcceptsTab to true allows the 
            RichTextBox to accept tab characters. -->
-                    <RichTextBox 
+                        <RichTextBox 
                                 Width="800"
                                 Height="400"
                                 HorizontalAlignment="Stretch"
@@ -146,11 +147,11 @@
            
                     />
                     </ScrollViewer>
-                   
+
                 </DockPanel>
             </DockPanel>
-            
-                     
+
+
             <DockPanel
                 HorizontalAlignment="Right"
                 />
