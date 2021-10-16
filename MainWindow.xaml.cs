@@ -55,7 +55,7 @@ namespace PPT_creator
         Presentation pptPresentation;
         Microsoft.Office.Interop.PowerPoint.CustomLayout customLayout;
 
-        string picDir = "D:\\Images";
+        string picDir = "C:\\temp\\Images";
         
 
         byte[] imageBytes = null;
@@ -83,7 +83,17 @@ namespace PPT_creator
             pptPresentation = pptApplication.Presentations.Add(MsoTriState.msoTrue);
             customLayout = pptPresentation.SlideMaster.CustomLayouts[Microsoft.Office.Interop.PowerPoint.PpSlideLayout.ppLayoutClipartAndText];
 
-            pptPresentation.SaveAs(@"D:\\testtest.pptx", Microsoft.Office.Interop.PowerPoint.PpSaveAsFileType.ppSaveAsDefault, MsoTriState.msoTrue);
+            string fileName = "presentation.pptx";
+            string pptPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+
+            try
+            {
+                pptPresentation.SaveAs(pptPath, Microsoft.Office.Interop.PowerPoint.PpSaveAsFileType.ppSaveAsDefault, MsoTriState.msoTrue);
+            } catch(Exception ex)
+            {
+                MessageBox.Show("Couldn't create presentation at this time. Please close the file if open in other applications, exit and try again.");
+            }
+           
 
             System.IO.Directory.CreateDirectory(@picDir);
 
@@ -252,8 +262,7 @@ namespace PPT_creator
             {
                 Console.WriteLine(ex);
             }
-           
-
+   
             //Console.WriteLine(result);
             return result;
         }
@@ -290,14 +299,21 @@ namespace PPT_creator
                 //create an image byte array
                 BitmapImage image = new BitmapImage(new Uri(url));
                 var webClient = new WebClient();
-                imageBytes = webClient.DownloadData(url);
+                try
+                {
+                    imageBytes = webClient.DownloadData(url);
+                    DataObject data = new DataObject();
 
-                DataObject data = new DataObject();
+                    data.SetData(imageBytes);
 
-                data.SetData(imageBytes);
+                    DragDrop.DoDragDrop(this, data, DragDropEffects.Copy | DragDropEffects.Move);
 
-                DragDrop.DoDragDrop(this, data, DragDropEffects.Copy | DragDropEffects.Move);
-
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Forbidden.   reson:" + ex);
+                }
+                                
                 Debug.WriteLine("Created.");
             }
         }
@@ -339,9 +355,7 @@ namespace PPT_creator
 
                     Debug.WriteLine("Stop here.");
 
-                    // Set Effects to notify the drag source what effect
-                    // the drag-and-drop operation had.
-                    // (Copy if CTRL is pressed; otherwise, move.)
+                   
                     if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
                     {
                         e.Effects = DragDropEffects.Copy;
@@ -393,7 +407,7 @@ namespace PPT_creator
 
                     mainRTB.Document.Blocks.Add(paragraph);
 
-                    //*************************SAVE PIC TO COLLECTION AND DISK****************************
+                    //SAVE PIC TO COLLECTION AND DISK
 
                     PictureHelper pic = new PictureHelper();
                     picsCollectionHelper.addPic(pic);
@@ -415,16 +429,14 @@ namespace PPT_creator
                         copyBmp.Dispose();
                     }
 
-                    //************************************************************************************
+                    
 
                     bmp.Dispose();
                     
 
                     Debug.WriteLine("Stop here.");
 
-                    // Set Effects to notify the drag source what effect
-                    // the drag-and-drop operation had.
-                    // (Copy if CTRL is pressed; otherwise, move.)
+                    
                     if (e.KeyStates.HasFlag(DragDropKeyStates.ControlKey))
                     {
                         e.Effects = DragDropEffects.Copy;
@@ -541,10 +553,7 @@ namespace PPT_creator
             //traverse all Paragraph nodes in richtextbox xaml
             XElement xmlTree = XElement.Parse(xaml);
 
-            objText = slide.Shapes[2].TextFrame.TextRange;
-            objText.Font.Size = 20;
-            objText.ParagraphFormat.Bullet.Character = ' ';
-
+           
             float heightOffset = 100;
             int j = -1;
 
@@ -567,12 +576,9 @@ namespace PPT_creator
                         shape = slide.Shapes[2];
                         try
                         {
-                            slide.Shapes.AddShape(MsoAutoShapeType.msoShapeRectangle, 0, heightOffset, 267, 150).Fill.UserPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri());
+                            slide.Shapes.AddShape(MsoAutoShapeType.msoShapeRectangle, 20, heightOffset, 200, 113).Fill.UserPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri());
 
-                            // slide.Shapes.AddPicture(picsCollectionHelper.picsList.ElementAt(++j).getPictureUri(), Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top + heightOffset, shape.Width / 3, shape.Height / 3);
-                            // heightOffset += shape.Height / 3;
-
-                            heightOffset += 160;
+                            heightOffset += 115;
 
                           
                         }
@@ -590,23 +596,28 @@ namespace PPT_creator
                     }
                     else
                     {
-                        slide.Shapes.AddTextbox(MsoTextOrientation.msoTextOrientationHorizontal, 0, heightOffset, 1200, 30).TextFrame.TextRange.Text = n.Value;
-                        heightOffset += 30;
 
-                        /* objText.Text += n.Value;
-                         objText.Text += Environment.NewLine;*/
+                        var textBox = slide.Shapes.AddTextbox(MsoTextOrientation.msoTextOrientationHorizontal, 20, heightOffset, 600, 36);
+                        textBox.TextEffect.FontSize = 12;
+                        textBox.TextEffect.Alignment = MsoTextEffectAlignment.msoTextEffectAlignmentWordJustify;
+                        textBox.TextFrame.MarginBottom = 10;
+                        textBox.TextFrame.MarginTop = 10;
+                        textBox.TextFrame.TextRange.Text = n.Value;
+                                            
 
-                       
+                        int lines = n.Value.Length / 120;
+                        heightOffset += 18*lines+20;
+
+                                            
                     }
                    
-
                 }
               
             }
 
 
             //clean all temp pics
-            System.IO.DirectoryInfo di = new DirectoryInfo("D:\\Images");
+            System.IO.DirectoryInfo di = new DirectoryInfo("C:\\temp\\Images");
 
             foreach (FileInfo file in di.GetFiles())
             {
@@ -620,61 +631,7 @@ namespace PPT_creator
 
             pptPresentation.Save();
             
-
-            SaveToPPTplayground();
-
             Console.WriteLine("Stop for ppt slide debug.");
-
-        }
-
-
-
-        private void SaveToPPTplayground()
-        {
-            string pictureFileName = "D:\\cat1.jpg";
-
-            Application pptApplication = new Application();
-
-            Microsoft.Office.Interop.PowerPoint.Slides slides;
-            Microsoft.Office.Interop.PowerPoint._Slide slide;
-            Microsoft.Office.Interop.PowerPoint.TextRange objText;
-
-            // Create the Presentation File
-            Presentation pptPresentation = pptApplication.Presentations.Add(MsoTriState.msoTrue);
-
-            Microsoft.Office.Interop.PowerPoint.CustomLayout customLayout = pptPresentation.SlideMaster.CustomLayouts[Microsoft.Office.Interop.PowerPoint.PpSlideLayout.ppLayoutText];
-
-            // Create new Slide
-            slides = pptPresentation.Slides;
-            slide = slides.AddSlide(1, customLayout);
-
-            // Add title
-            objText = slide.Shapes[1].TextFrame.TextRange;
-            objText.Text = "test";
-            objText.Font.Name = "Arial";
-            objText.Font.Size = 32;
-
-            objText = slide.Shapes[2].TextFrame.TextRange;
-            objText.Text = "Content goes here\nYou can add text\nItem 3";
-
-            var start = slide.Shapes[2].TextFrame.TextRange.Find("Content goes here ");
-            start.InsertAfter("you're lucky");
-
-
-          /*  Microsoft.Office.Interop.PowerPoint.Shape shape = slide.Shapes[2];
-            slide.Shapes.AddPicture(pictureFileName, Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoTrue, shape.Left, shape.Top, shape.Width, shape.Height);*/
-
-            slide.NotesPage.Shapes[2].TextFrame.TextRange.Text = "Test";
-
-            pptPresentation.SaveAs(@"D:\\sandbox.pptx", Microsoft.Office.Interop.PowerPoint.PpSaveAsFileType.ppSaveAsDefault, MsoTriState.msoTrue);
-            pptPresentation.Close();
-
-            
-        }
-
-        ~MainWindow()
-        {
-            
 
         }
 
@@ -720,7 +677,6 @@ namespace PPT_creator
         }
 
 
-        //TODO: manage nulls
         public IEnumerator<SlideHelper> GetEnumerator()
         {
             return slides.GetEnumerator();
@@ -786,7 +742,6 @@ namespace PPT_creator
         }
 
 
-        //TODO: manage nulls
         public IEnumerator<PictureHelper> GetEnumerator()
         {
             return picsList.GetEnumerator();
